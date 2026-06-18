@@ -39,7 +39,7 @@ test_freq: 5
 dims: 2048
 
 # dataset
-dataset_dir: ''  # path to dataset
+dataset_dir: '../data'  # path to dataset
 input_nc: 3
 mask_nc: 1
 output_nc: 3

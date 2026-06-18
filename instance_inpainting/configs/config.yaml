@@ -37,7 +37,7 @@ results_root: 'results/'
 test_freq: 20
 
 # dataset
-dataset_dir: ''  # path to object dataset
+dataset_dir: '../data'  # path to object dataset
 input_nc: 3
 mask_nc: 1
 output_nc: 3
