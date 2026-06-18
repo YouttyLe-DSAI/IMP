@@ -11,7 +11,7 @@ import numpy as np
 
 def get_config(config):
     with open(config, 'r') as stream:
-        return yaml.load(stream)
+        return yaml.safe_load(stream)
 
 
 def prepare_sub_folder(output_directory):
