@@ -9,7 +9,7 @@ inst_size: 64
 # basic
 batch_size: 50
 shuffle: true
-max_epoch: 500
+max_epoch: 60
 epoch_start: 1      # the starting epoch count
 
 # optimizer
@@ -29,7 +29,7 @@ gamma: 0.5
 # print
 visual_img_freq: 1000
 print_loss_freq: 1000
-save_epoch_freq: 20
+save_epoch_freq: 10
 
 # test
 test_batch_size: 1   # must be one
