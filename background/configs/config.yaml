@@ -1,7 +1,7 @@
 D_norm_type: batch
 E_norm_type: bn
 G_norm_type: in
-batch_size: 1
+batch_size: 4
 beta1: 0.5
 beta2: 0.999
 crop: true
@@ -44,9 +44,9 @@ save_epoch_freq: 10
 shuffle: true
 step_size: 50
 style_dim: 256
-test_batch_size: 1
+test_batch_size: 4
 test_freq: 5
 use_dropout: false
 visual_img_freq: 8000
 weight_decay: 0.0001
-worker: 0
+worker: 2
