@@ -247,11 +247,11 @@ class Trainer(nn.Module):
                 }, self.name
 
     def print_losses(self):
+        log = []
         for name in self.Losses_name:
-            loss = getattr(self, name)
-            print('===== ', name, ' =====')
-            for v,k in loss.items():
-                print(v, ': ', k)
+            for k,v in getattr(self, name).items():
+                log.append(f"{k}: {v.item():.3f}")
+        print(" | ".join(log))
 
 
     def print_network(self, model, name):
@@ -415,12 +415,14 @@ class Trainer(nn.Module):
                     xl, yl = np.where(edge == 1)
                     c = random.randrange(0, xl.shape[0])
                     xc, yc = xl[c], yl[c]
-                    curr_size = random.randint(96,160)
-                    real_p = self.patchify_image(real[b:b+1], xc, yc, curr_size)
-                    fake_p = self.patchify_image(fake[b:b+1], xc, yc, curr_size)
-                    seg_p = self.patchify_image(segmap[b:b+1], xc, yc, curr_size)
-                    real_patch_list.append(torch.cat((real_p, seg_p), dim=1))
-                    fake_patch_list.append(torch.cat((fake_p, seg_p), dim=1))
+                else:
+                    xc, yc = 128, 128
+                curr_size = random.randint(96,160)
+                real_p = self.patchify_image(real[b:b+1], xc, yc, curr_size)
+                fake_p = self.patchify_image(fake[b:b+1], xc, yc, curr_size)
+                seg_p = self.patchify_image(segmap[b:b+1], xc, yc, curr_size)
+                real_patch_list.append(torch.cat((real_p, seg_p), dim=1))
+                fake_patch_list.append(torch.cat((fake_p, seg_p), dim=1))
         
         real_patch = torch.cat((real_patch_list), dim=0)
         fake_patch = torch.cat((fake_patch_list), dim=0)

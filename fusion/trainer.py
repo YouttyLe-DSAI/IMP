@@ -235,11 +235,11 @@ class Trainer(nn.Module):
                 }, self.name
 
     def print_losses(self):
+        log = []
         for name in self.Losses_name:
-            loss = getattr(self, name)
-            print('===== ', name, ' =====')
-            for v,k in loss.items():
-                print(v, ': ', k)
+            for k,v in getattr(self, name).items():
+                log.append(f"{k}: {v.item():.3f}")
+        print(" | ".join(log))
 
 
     def print_network(self, model, name):
