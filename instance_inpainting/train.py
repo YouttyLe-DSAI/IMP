@@ -25,7 +25,7 @@ print_options(opts)
 
 
 # GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+# removed hardcoded GPU
 
 # Load experiment setting
 cfg = get_config(opts.config)
