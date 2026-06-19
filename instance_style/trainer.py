@@ -263,3 +263,9 @@ class Trainer(nn.Module):
             opt.load_state_dict(ckpt[name])
             print('load opt %s of epoch %d' % (name, cur_epoch))
         return cur_epoch
+    def get_loss_str(self):
+        log = []
+        for name in self.Losses_name:
+            for k,v in getattr(self, name).items():
+                log.append(f"{k}: {v.item():.3f}")
+        return " | ".join(log)

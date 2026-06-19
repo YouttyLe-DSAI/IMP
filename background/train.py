@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from utils import *
 import argparse
 import numpy as np
@@ -118,9 +119,8 @@ for epoch in range(cur_epoch, cfg['max_epoch']):
                 else:
                     cv2.imwrite(os.path.join(cur_img_dir, save_name), tensor2im(img, no_fg=no_fg))
 
-        if i % cfg['print_loss_freq'] == 0:  # print training losses and save logging information to the disk
-            print('print losses at the {} epoch {} iter'.format(epoch, i))
-            trainer.print_losses()
+        if i % cfg['print_loss_freq'] == 0:
+            pbar.set_postfix_str(trainer.get_loss_str())
 
     if (epoch+1) % cfg['save_epoch_freq'] == 0:              # cache our model every <save_epoch_freq> epochs
         print('saving the model at the end of epoch %d' % (epoch))
