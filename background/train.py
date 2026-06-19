@@ -73,7 +73,8 @@ best_fid = float("inf")
 print('training start at %d th epoch' % (cur_epoch))
 # Start training
 for epoch in range(cur_epoch, cfg['max_epoch']):
-    for i, data in enumerate(train_loader):  # inner loop within one epoch
+    pbar = tqdm(train_loader, desc=f"Epoch {epoch}/{cfg['max_epoch']}", dynamic_ncols=True)
+    for i, data in enumerate(pbar):  # inner loop within one epoch
         trainer.train()
         trainer.set_input(data)  # unpack data from dataset and apply preprocessing
         trainer.optimize_parameters()  # calculate loss functions, get gradients, update network weights
