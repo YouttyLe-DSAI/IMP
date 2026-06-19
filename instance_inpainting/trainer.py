@@ -254,7 +254,8 @@ class Trainer(nn.Module):
         return cur_epoch
     def get_loss_str(self):
         log = []
-        for name in self.Losses_name:
-            for k,v in getattr(self, name).items():
-                log.append(f"{k}: {v.item():.3f}")
+        for k,v in self.G_losses.items():
+            log.append(f"{k}: {v.item():.3f}")
+        for k,v in self.D_inp_losses.items():
+            log.append(f"{k}: {v.item():.3f}")
         return " | ".join(log)
