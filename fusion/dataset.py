@@ -144,7 +144,7 @@ class SIE_Dataset(Dataset):
             inst_map = np.array(inst_map, dtype=np.int32)
         
         if self.mask_type == 'removal':
-            inst_map = np.zeros((256, 256))
+            inst_map = np.zeros((self.real_h, self.real_w))
             inst_map = np.array(inst_map, dtype=np.int32)
 
         if self.dataset_name == 'cityscapes512x256':
@@ -458,19 +458,19 @@ class SIE_Dataset(Dataset):
         return mask
 
     def load_inst_mask(self, img_shapes, lab, fg_classes_list, bg_classes_list, fg_inst_mask_list):
-        height, width = img_shapes, img_shapes
+        height, width = lab.shape[0], lab.shape[1]
         mask = np.zeros((height, width), np.float32)
         
         for inst in fg_inst_mask_list:
             if np.sum(inst) > 400:
-                curr_mask = np.zeros((256, 256), np.float32)
+                curr_mask = np.zeros(inst.shape, np.float32)
                 ys,xs = np.where(inst > 0.)
                 ymin, ymax, xmin, xmax = ys.min(), ys.max(), xs.min(), xs.max()
                 mm = 5
                 ymin = max(0, ymin-mm)
-                ymax = min(255, ymax+mm)
+                ymax = min(height-1, ymax+mm)
                 xmin = max(0, xmin-mm)
-                xmax = min(255, xmax+mm)
+                xmax = min(width-1, xmax+mm)
                 curr_mask[ymin:ymax, xmin:xmax] = 1.
                 mask = mask + curr_mask * (1. - mask)
         
@@ -616,10 +616,11 @@ class SIE_Dataset(Dataset):
         m = 2
         
         if short > short_min and long > long_min:
+            h_inst, w_inst = inst_mask.shape
             x_min = max(0, x_min-m)
-            x_max = min(x_max+m, 512)
+            x_max = min(x_max+m, h_inst-1)
             y_min = max(0, y_min-m)
-            y_max = min(y_max+m, 256)
+            y_max = min(y_max+m, w_inst-1)
             return [x_min, x_max, y_min, y_max]
         else:
             return [0, 0, 0, 0]

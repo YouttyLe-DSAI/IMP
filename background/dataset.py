@@ -101,6 +101,7 @@ class SIE_Dataset(Dataset):
         
         
         lab_ori = lab.copy()
+        self.real_h, self.real_w = lab_ori.shape[0], lab_ori.shape[1]
         
         # extract all ids of the current input "lab"
         lab_ids = np.unique(lab)
@@ -206,22 +207,22 @@ class SIE_Dataset(Dataset):
                     elif np.sum(curr_ibg) > 0 and np.sum(curr_ibg_inv) <= 0:
                         bg_gen_inst.append(curr_ibg)
             
-            fg_inp_mask = np.zeros((256, 256), np.float32)
+            fg_inp_mask = np.zeros((self.real_h, self.real_w), np.float32)
             for curr in fg_inp_inst:
                 fg_inp_mask = fg_inp_mask + curr * (1. - fg_inp_mask)
             fg_inp_mask = self.mask_binary(fg_inp_mask)
             
-            fg_gen_mask = np.zeros((256, 256), np.float32)
+            fg_gen_mask = np.zeros((self.real_h, self.real_w), np.float32)
             for curr in fg_gen_inst:
                 fg_gen_mask = fg_gen_mask + curr * (1. - fg_gen_mask)
             fg_gen_mask = self.mask_binary(fg_gen_mask)
             
-            bg_inp_mask = np.zeros((256, 256), np.float32)
+            bg_inp_mask = np.zeros((self.real_h, self.real_w), np.float32)
             for curr in bg_inp_inst:
                 bg_inp_mask = bg_inp_mask + curr * (1. - bg_inp_mask)
             bg_inp_mask = self.mask_binary(bg_inp_mask)
             
-            bg_gen_mask = np.zeros((256, 256), np.float32)
+            bg_gen_mask = np.zeros((self.real_h, self.real_w), np.float32)
             for curr in bg_gen_inst:
                 bg_gen_mask = bg_gen_mask + curr * (1. - bg_gen_mask)
             bg_gen_mask = self.mask_binary(bg_gen_mask)
@@ -247,12 +248,12 @@ class SIE_Dataset(Dataset):
                                  class_id=24, min_size=(0,0), crop_size=(64,32), sum_min_ratio=0.35, ratio_range=(2,6))
             
             
-            car_g_mask = np.zeros((256, 256), np.float32)
+            car_g_mask = np.zeros((self.real_h, self.real_w), np.float32)
             for curr in car_g_mask_inst:
                 car_g_mask = car_g_mask + curr * (1. - car_g_mask)
             car_g_mask = self.mask_binary(car_g_mask)
             
-            person_g_mask = np.zeros((256, 256), np.float32)
+            person_g_mask = np.zeros((self.real_h, self.real_w), np.float32)
             for curr in person_g_mask_inst:
                 person_g_mask = person_g_mask + curr * (1. - person_g_mask)
             person_g_mask = self.mask_binary(person_g_mask)
@@ -284,7 +285,7 @@ class SIE_Dataset(Dataset):
         inst_map = torch.from_numpy(inst_map)
         
         class_num = 35
-        bg_coo_map = np.zeros((class_num, 256, 256), np.float32)
+        bg_coo_map = np.zeros((class_num, self.real_h, self.real_w), np.float32)
         for i in range(len(bg_inp_inst)):
             bg_coo_map[i] = bg_inp_inst[i]
 
@@ -359,19 +360,19 @@ class SIE_Dataset(Dataset):
         return mask
 
     def load_inst_mask(self, img_shapes, lab, fg_classes_list, bg_classes_list, fg_inst_mask_list):
-        height, width = img_shapes, img_shapes
+        height, width = lab.shape[0], lab.shape[1]
         mask = np.zeros((height, width), np.float32)
         
         for inst in fg_inst_mask_list:
             if np.sum(inst) > 400:
-                curr_mask = np.zeros((256, 256), np.float32)
+                curr_mask = np.zeros(inst.shape, np.float32)
                 ys,xs = np.where(inst > 0.)
                 ymin, ymax, xmin, xmax = ys.min(), ys.max(), xs.min(), xs.max()
                 mm = 5
                 ymin = max(0, ymin-mm)
-                ymax = min(255, ymax+mm)
+                ymax = min(height-1, ymax+mm)
                 xmin = max(0, xmin-mm)
-                xmax = min(255, xmax+mm)
+                xmax = min(width-1, xmax+mm)
                 curr_mask[ymin:ymax, xmin:xmax] = 1.
                 mask = mask + curr_mask * (1. - mask)
         
@@ -449,7 +450,7 @@ class SIE_Dataset(Dataset):
         mask_crop = torch.zeros((max_num,1,crop_size[0],crop_size[1]))
         cors = np.array([[0,0,0,0]] * max_num)
         if len(cors_list) == 0:
-            g_mask_inst = [np.zeros((256,256))]
+            g_mask_inst = [np.zeros((self.real_h, self.real_w))]
 
         
         for n in range(len(cors_list)):
@@ -515,10 +516,11 @@ class SIE_Dataset(Dataset):
         m = 2
         
         if short > short_min and long > long_min:
+            h_inst, w_inst = inst_mask.shape
             x_min = max(0, x_min-m)
-            x_max = min(x_max+m, 255)
+            x_max = min(x_max+m, h_inst-1)
             y_min = max(0, y_min-m)
-            y_max = min(y_max+m, 255)
+            y_max = min(y_max+m, w_inst-1)
             return [x_min, x_max, y_min, y_max]
         else:
             return [0, 0, 0, 0]
