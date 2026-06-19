@@ -32,9 +32,9 @@ cfg = get_config(opts.config)
 # datasets setting
 if opts.dataset_name == 'cityscapes512x256':
     cfg['lab_dim'] = 34
-    cfg['max_epoch'] = 500
-    cfg['epoch_init_lr'] = 400
-    cfg['niter_decay'] = 100
+    # cfg['max_epoch'] = 500
+    # cfg['epoch_init_lr'] = 400
+    # cfg['niter_decay'] = 100
     cfg['test_freq'] = 20
 
 
