@@ -53,7 +53,7 @@ class SIE_Dataset(Dataset):
                 self.dir_img = os.path.join(dataset_root, self.split, 'images')
                 self.dir_lab = os.path.join(dataset_root, self.split, 'labels')
                 self.dir_ins = os.path.join(dataset_root, self.split, 'inst_map')
-                self.mask_path = ''  # path to mask
+                self.mask_path = os.path.join(dataset_root, 'predefined_mask')  # path to mask
                 self.mask_list = os.listdir(self.mask_path)
                 self.mask_list.sort()
         else:
@@ -71,26 +71,32 @@ class SIE_Dataset(Dataset):
         self.max_num = self.cfg['max_num']
         self.inst_size = self.cfg['inst_size']
 
-        self.car_dir = ''  # path to car images
-        self.car_inst_dir = ''  # path to car instance masks
-        self.car_sty_list = os.listdir(self.car_dir)
-        self.car_num = len(os.listdir(self.car_dir))
+        if self.split == 'train':
+            self.car_dir = os.path.join(dataset_root, 'object_datasets/car/train/images')
+            self.car_inst_dir = os.path.join(dataset_root, 'object_datasets/car/train/inst_mask')
+            self.person_dir = os.path.join(dataset_root, 'object_datasets/person/train/images')
+            self.person_inst_dir = os.path.join(dataset_root, 'object_datasets/person/train/inst_mask')
+        else:
+            self.car_dir = os.path.join(dataset_root, 'object_datasets/car/test/images')
+            self.car_inst_dir = os.path.join(dataset_root, 'object_datasets/car/test/inst_mask')
+            self.person_dir = os.path.join(dataset_root, 'object_datasets/person/test/images')
+            self.person_inst_dir = os.path.join(dataset_root, 'object_datasets/person/test/inst_mask')
 
-        self.person_dir = ''  # path to person images
-        self.person_inst_dir = ''  # path to person instance masks
+        self.car_sty_list = os.listdir(self.car_dir)
+        self.car_num = len(self.car_sty_list)
         self.person_sty_list = os.listdir(self.person_dir)
-        self.person_num = len(os.listdir(self.person_dir))
+        self.person_num = len(self.person_sty_list)
         
         if self.split == 'test' and self.mask_type == 'out_dis':
             self.car_dir = 'example/object_style/car/images/'
             self.car_inst_dir = 'example/object_style/car/inst_mask/'
             self.car_sty_list = os.listdir(self.car_dir)
-            self.car_num = len(os.listdir(self.car_dir))
+            self.car_num = len(self.car_sty_list)
 
             self.person_dir = 'example/object_style/person/images/'
             self.person_inst_dir = 'example/object_style/person/inst_mask/'
             self.person_sty_list = os.listdir(self.person_dir)
-            self.person_num = len(os.listdir(self.person_dir))            
+            self.person_num = len(self.person_sty_list)            
 
     def __getitem__(self, index):
         # object images

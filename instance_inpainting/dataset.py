@@ -46,7 +46,7 @@ class SIE_Dataset(Dataset):
                         self.data.append((os.path.join(self.img,n[:-4]+'.jpg'), os.path.join(self.ins,n[:-4]+'.png'), s[1], n[:-4]))
 
             self.data.sort()
-            self.mask_path = ''  # path to object mask
+            self.mask_path = os.path.join(dataset_root, 'object_mask')  # path to object mask
             mask_list = os.listdir(self.mask_path)
             mask_list.sort()
             self.mask_list = mask_list[:len(self.data)]

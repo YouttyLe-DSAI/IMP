@@ -28,7 +28,7 @@ class SIE_Dataset(Dataset):
         self.name_list = [n[:-4] for n in name_list if n.endswith('jpg')]
 
         if self.mask_type == 'ff_mask':
-            self.mask_path = ''  # path to pre-generated free-form mask
+            self.mask_path = os.path.join(dataset_root, 'predefined_mask')  # path to pre-generated free-form mask
             mask_list = os.listdir(self.mask_path)
             mask_list.sort()
             self.mask_list = mask_list[:len(self.name_list)]
