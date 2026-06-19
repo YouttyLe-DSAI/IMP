@@ -101,8 +101,15 @@ class SIE_Dataset(Dataset):
                 mask = torch.from_numpy(mask)
         
         else:
-            mask = cv2.imread(os.path.join(self.mask_path, self.mask_list[index]), 0) / 255
-            mask = cv2.resize(mask, (self.sh, self.sw), interpolation=cv2.INTER_NEAREST)
+            if hasattr(self, 'mask_list') and len(self.mask_list) > 0:
+                mask = cv2.imread(os.path.join(self.mask_path, self.mask_list[index % len(self.mask_list)]), 0)
+                if mask is None:
+                    mask = brush_stroke_mask(H=self.sh, W=self.sw)
+                else:
+                    mask = mask / 255
+                    mask = cv2.resize(mask, (self.sh, self.sw), interpolation=cv2.INTER_NEAREST)
+            else:
+                mask = brush_stroke_mask(H=self.sh, W=self.sw)
             mask = mask.reshape((1,) + mask.shape).astype(np.float32)
             mask = torch.from_numpy(mask)
 

@@ -140,7 +140,16 @@ class SIE_Dataset(Dataset):
             mask = self.mask_binary(mask)
         
         else:
-            mask = cv2.imread(os.path.join(self.mask_path, self.mask_list[index]), 0)
+            if hasattr(self, 'mask_list') and len(self.mask_list) > 0:
+                mask = cv2.imread(os.path.join(self.mask_path, self.mask_list[index % len(self.mask_list)]), 0)
+                if mask is None:
+                    # Fallback if image fails to load
+                    mask = brush_stroke_mask(H=self.real_h, W=self.real_w)
+                else:
+                    if mask.shape[0] != self.real_h or mask.shape[1] != self.real_w:
+                        mask = cv2.resize(mask, (self.real_w, self.real_h), interpolation=cv2.INTER_NEAREST)
+            else:
+                mask = brush_stroke_mask(H=self.real_h, W=self.real_w)
             mask = mask.reshape((1,) + mask.shape).astype(np.float32)
 
         # generate inp_mask, gen_mask
