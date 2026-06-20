@@ -136,13 +136,22 @@ for epoch in range(cur_epoch, cfg['max_epoch']):
             cur_save_dir = os.path.join(result_directory, str(epoch))
             if not os.path.exists(cur_save_dir):
                 os.makedirs(cur_save_dir)
+
+            path_gt = os.path.join(opts.output_path, "outputs", opts.dataset_name, 'test_gt')
+            if not os.path.exists(path_gt):
+                os.makedirs(path_gt)
+
             for i, data in enumerate(test_loader):
                 trainer.set_input(data)
                 trainer.forward()
                 results, img_name = trainer.visual_results()
                 cv2.imwrite(os.path.join(cur_save_dir, img_name[0]+'.png'), tensor2im(results['masked_inp']))
+                
+                # Dynamically save GT to path_gt (writeable path)
+                gt_path = os.path.join(path_gt, img_name[0]+'.png')
+                if not os.path.exists(gt_path):
+                    cv2.imwrite(gt_path, tensor2im(results['gt']))
 
-            path_gt = os.path.join(cfg['dataset_dir'], 'test_gt', opts.dataset_name)
             path_test = cur_save_dir
             print('path_gt: ', path_gt)
             print('path_test: ', path_test)
