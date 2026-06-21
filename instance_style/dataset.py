@@ -34,8 +34,8 @@ class SIE_Dataset(Dataset):
                     if n.endswith('jpg'):
                         curr_d.append((os.path.join(self.img,n[:-4]+'.jpg'), os.path.join(self.ins,n[:-4]+'.png'), s[1], n[:-4]))
                 
-                curr_d = curr_d * 10
-                self.data.extend(curr_d[:10000])
+                curr_d = curr_d * 2
+                self.data.extend(curr_d[:2000])
         
         elif self.split == 'test':
             for s in class_set:
