@@ -194,6 +194,7 @@ class SIE_Dataset(Dataset):
         
         # extract all ids of the current input "lab"
         lab_ori = lab.copy()
+        self.real_h, self.real_w = lab_ori.shape[0], lab_ori.shape[1]
         
         lab_ids = np.unique(lab)
         lab_ids = lab_ids.tolist()
