@@ -94,8 +94,8 @@ class inst_Gs(nn.Module):
             person_output = torch.zeros((1,3,self.inst_size,self.inst_size), device=gt.device)
             person_output_filling = torch.zeros(gt.size(), device=gt.device)
         
-        embed_car_output, mask_carcaracrcar = self.embed_crop(car_output_filling, car_ints_mask_crop, car_inst_cors, batch_size=gt.size()[0], max_inst_num=self.max_num)
-        embed_person_output, _ = self.embed_crop(person_output_filling, person_ints_mask_crop, person_inst_cors, batch_size=gt.size()[0], max_inst_num=self.max_num)
+        embed_car_output, mask_carcaracrcar = self.embed_crop(car_output_filling, car_ints_mask_crop, car_inst_cors, batch_size=gt.size()[0], max_inst_num=self.max_num, H=gt.size(2), W=gt.size(3))
+        embed_person_output, _ = self.embed_crop(person_output_filling, person_ints_mask_crop, person_inst_cors, batch_size=gt.size()[0], max_inst_num=self.max_num, H=gt.size(2), W=gt.size(3))
         embed_output = embed_car_output + embed_person_output
         
         fg_gen_masked_img = (embed_output * fg_mask * mask) + masked_img * (1. - fg_mask * mask)  # detach()
@@ -106,10 +106,10 @@ class inst_Gs(nn.Module):
                embed_car_output, embed_person_output, embed_output, gt_fg_gen], fg_gen_masked_img.detach()
 
     # embed a category of objects back to their original position
-    def embed_crop(self, output, ints_mask, cors, batch_size, max_inst_num):
+    def embed_crop(self, output, ints_mask, cors, batch_size, max_inst_num, H, W):
         N, c, _, _ = output.size()
-        embedded_images = torch.zeros((batch_size, c, 256, 256), device=output.device)
-        img = torch.zeros((1, 1, 256, 256), device=output.device)
+        embedded_images = torch.zeros((batch_size, c, H, W), device=output.device)
+        img = torch.zeros((1, 1, H, W), device=output.device)
         
         b = 0
         for n in range(N):
@@ -121,8 +121,8 @@ class inst_Gs(nn.Module):
                 x_min, x_max, y_min, y_max = cors[n]
                 curr_output = F.interpolate(output[n:n+1,:,:,:], (x_max-x_min, y_max-y_min), mode='bilinear')
                 curr_mask = F.interpolate(ints_mask[n:n+1,:,:,:], (x_max-x_min, y_max-y_min), mode='nearest')
-                img = torch.zeros((1, c, 256, 256), device=output.device)
-                mask = torch.zeros((1, 1, 256, 256), device=output.device)
+                img = torch.zeros((1, c, H, W), device=output.device)
+                mask = torch.zeros((1, 1, H, W), device=output.device)
                 img[:, :, x_min:x_max, y_min:y_max] = curr_output
                 mask[:, :, x_min:x_max, y_min:y_max] = curr_mask
                 
