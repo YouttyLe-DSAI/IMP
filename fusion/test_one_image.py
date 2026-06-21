@@ -23,11 +23,13 @@ opts = parser.parse_args()
 print_options(opts)
 
 
-# GPU
-os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"Running evaluation on device: {device}")
 
 # Load experiment setting
 cfg = get_config(opts.config)
+cfg['is_train'] = False
 # datasets setting
 if opts.dataset_name == 'cityscapes512x256':
     cfg['lab_dim'] = 34
@@ -38,13 +40,13 @@ if opts.dataset_name == 'cityscapes512x256':
 
 
 trainer = Trainer(cfg)
-trainer.cuda()
+trainer.to(device)
 
 # print model information
 trainer.print_networks()
 
 ckt_path = 'submodels/Fnet.pth'
-state_dict = torch.load(ckt_path)['netG_F']
+state_dict = torch.load(ckt_path, map_location=device)['netG_F']
 trainer.netG_F.load_state_dict(state_dict)
 
 

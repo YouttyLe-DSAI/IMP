@@ -28,7 +28,7 @@ class inst_Gs(nn.Module):
         car_inst_mask_filtering, car_input_filtering, car_gt_filtering, car_mask_filtering, car_is_none, car_num \
             = self.filtering_fg_mask_batch(car_ints_mask_crop, car_input, car_gt_crop2048, car_mask_crop)
         if car_num > 0:
-            cls = torch.tensor([1, 0, 0]).unsqueeze(0).cuda()
+            cls = torch.tensor([1, 0, 0], device=gt.device).unsqueeze(0)
             car_output_list = []
             for idx in range(car_num):
                 curr_car_inst_mask_filtering = car_inst_mask_filtering[idx:idx + 1]
@@ -56,15 +56,15 @@ class inst_Gs(nn.Module):
             car_output_filling = self.filling_fg_mask_batch(car_output, car_is_none, car_input.size())
         # if there is no car, 
         else:
-            car_output = torch.zeros((1,3,self.inst_size,self.inst_size)).cuda()
-            car_output_filling = torch.zeros(gt.size()).cuda()
+            car_output = torch.zeros((1,3,self.inst_size,self.inst_size), device=gt.device)
+            car_output_filling = torch.zeros(gt.size(), device=gt.device)
 
         ### person ###
         person_input = person_masked_img_crop * person_ints_mask_crop
         person_inst_mask_filtering, person_input_filtering, person_gt_filtering, person_mask_filtering, person_is_none, person_num \
             = self.filtering_fg_mask_batch(person_ints_mask_crop, person_input, person_gt_crop2048, person_mask_crop)
         if person_num > 0:
-            cls = torch.tensor([0,1,0]).unsqueeze(0).cuda()
+            cls = torch.tensor([0,1,0], device=gt.device).unsqueeze(0)
             person_output_list = []
             for idx in range(person_num):
                 curr_person_inst_mask_filtering = person_inst_mask_filtering[idx:idx + 1]
@@ -91,8 +91,8 @@ class inst_Gs(nn.Module):
 
             person_output_filling = self.filling_fg_mask_batch(person_output, person_is_none, person_input.size())
         else:
-            person_output = torch.zeros((1,3,self.inst_size,self.inst_size)).cuda()
-            person_output_filling = torch.zeros(gt.size()).cuda()
+            person_output = torch.zeros((1,3,self.inst_size,self.inst_size), device=gt.device)
+            person_output_filling = torch.zeros(gt.size(), device=gt.device)
         
         embed_car_output, mask_carcaracrcar = self.embed_crop(car_output_filling, car_ints_mask_crop, car_inst_cors, batch_size=gt.size()[0], max_inst_num=self.max_num)
         embed_person_output, _ = self.embed_crop(person_output_filling, person_ints_mask_crop, person_inst_cors, batch_size=gt.size()[0], max_inst_num=self.max_num)
@@ -108,8 +108,8 @@ class inst_Gs(nn.Module):
     # embed a category of objects back to their original position
     def embed_crop(self, output, ints_mask, cors, batch_size, max_inst_num):
         N, c, _, _ = output.size()
-        embedded_images = torch.zeros((batch_size, c, 256, 256)).cuda()
-        img = torch.zeros((1, 1, 256, 256)).cuda()
+        embedded_images = torch.zeros((batch_size, c, 256, 256), device=output.device)
+        img = torch.zeros((1, 1, 256, 256), device=output.device)
         
         b = 0
         for n in range(N):
@@ -121,8 +121,8 @@ class inst_Gs(nn.Module):
                 x_min, x_max, y_min, y_max = cors[n]
                 curr_output = F.interpolate(output[n:n+1,:,:,:], (x_max-x_min, y_max-y_min), mode='bilinear')
                 curr_mask = F.interpolate(ints_mask[n:n+1,:,:,:], (x_max-x_min, y_max-y_min), mode='nearest')
-                img = torch.zeros((1, c, 256, 256)).cuda()
-                mask = torch.zeros((1, 1, 256, 256)).cuda()
+                img = torch.zeros((1, c, 256, 256), device=output.device)
+                mask = torch.zeros((1, 1, 256, 256), device=output.device)
                 img[:, :, x_min:x_max, y_min:y_max] = curr_output
                 mask[:, :, x_min:x_max, y_min:y_max] = curr_mask
                 
@@ -155,10 +155,11 @@ class inst_Gs(nn.Module):
             mask_filtering = torch.cat(mask_filtering, dim=0)
         else:
             size = self.inst_size
-            inst_mask_filtering = torch.zeros((1,3,size,size)).cuda()
-            input_filtering = torch.zeros((1,3,size,size)).cuda()
-            gt_filtering = torch.zeros((1,3,size,size)).cuda()
-            mask_filtering = torch.zeros((1,3,size,size)).cuda()
+            device = ints_mask_crop.device
+            inst_mask_filtering = torch.zeros((1,3,size,size), device=device)
+            input_filtering = torch.zeros((1,3,size,size), device=device)
+            gt_filtering = torch.zeros((1,3,size,size), device=device)
+            mask_filtering = torch.zeros((1,3,size,size), device=device)
         
         return inst_mask_filtering, input_filtering, gt_filtering, mask_filtering, is_none, num
     
@@ -168,7 +169,7 @@ class inst_Gs(nn.Module):
         n = 0
         for curr_none in is_none:  # batch size
             if curr_none:
-                output_filling.append(torch.zeros((1, size[1], size[2], size[3])).cuda())
+                output_filling.append(torch.zeros((1, size[1], size[2], size[3]), device=output.device))
             else:
                 output_filling.append(output[n:n+1])
                 n += 1

@@ -29,6 +29,7 @@ class Trainer(nn.Module):
         self.netG_F.apply(weights_init('gaussian'))
         self.netD_F.apply(weights_init('gaussian'))
 
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.FloatTensor = torch.cuda.FloatTensor if torch.cuda.is_available() \
             else torch.FloatTensor
         self.ByteTensor = torch.cuda.ByteTensor if torch.cuda.is_available() \
@@ -55,7 +56,7 @@ class Trainer(nn.Module):
             # set schedulers
             self.schedulers = [get_scheduler(optimizer, self.cfg) for optimizer in self.optimizers]
             # set criterion
-            self.criterionGAN_global = loss.GANLoss(cfg['gan_mode']).cuda()
+            self.criterionGAN_global = loss.GANLoss(cfg['gan_mode']).to(self.device)
             self.criterionGAN_patch = loss.GANLoss_MultiD(cfg['gan_mode'], tensor=self.FloatTensor)
             self.criterionL1 = torch.nn.L1Loss()
             self.criterionVGG = loss.VGGLoss()
@@ -69,44 +70,44 @@ class Trainer(nn.Module):
 
 ######################################################################################
     def set_input(self, input):
-        self.masked_img = input['masked_img'].cuda()     # mask image
-        self.gt = input['img'].cuda()        # real image
-        self.gt2048 = input['gt2048'].cuda()
-        self.mask = input['mask'].cuda()    # mask image
-        self.lab = input['lab'].long().cuda()  # label image scatter_ require .long() type
+        self.masked_img = input['masked_img'].to(self.device)     # mask image
+        self.gt = input['img'].to(self.device)        # real image
+        self.gt2048 = input['gt2048'].to(self.device)
+        self.mask = input['mask'].to(self.device)    # mask image
+        self.lab = input['lab'].long().to(self.device)  # label image scatter_ require .long() type
         self.segmap = self.scatter_lab(self.lab, self.cfg['lab_dim'])
 
-        self.fg_mask = input['fg_mask'].cuda()
-        self.bg_mask = input['bg_mask'].cuda()
-        self.bg_mask_ori = input['bg_mask_ori'].cuda()
+        self.fg_mask = input['fg_mask'].to(self.device)
+        self.bg_mask = input['bg_mask'].to(self.device)
+        self.bg_mask_ori = input['bg_mask_ori'].to(self.device)
         
-        self.car_g_mask = input['car_g_mask'].cuda()
-        self.person_g_mask = input['person_g_mask'].cuda()
+        self.car_g_mask = input['car_g_mask'].to(self.device)
+        self.person_g_mask = input['person_g_mask'].to(self.device)
         
-        self.car_gt_crop = self.mask_crop_batch(input['car_gt_crop'].cuda())
-        self.car_gt_crop2048 = self.mask_crop_batch(input['car_gt_crop2048'].cuda())
-        self.car_masked_img_crop = self.mask_crop_batch(input['car_masked_img_crop'].cuda())
-        self.car_ints_mask_crop = self.mask_crop_batch(input['car_ints_mask_crop'].cuda())
-        self.car_mask_crop = self.mask_crop_batch(input['car_mask_crop'].cuda())
+        self.car_gt_crop = self.mask_crop_batch(input['car_gt_crop'].to(self.device))
+        self.car_gt_crop2048 = self.mask_crop_batch(input['car_gt_crop2048'].to(self.device))
+        self.car_masked_img_crop = self.mask_crop_batch(input['car_masked_img_crop'].to(self.device))
+        self.car_ints_mask_crop = self.mask_crop_batch(input['car_ints_mask_crop'].to(self.device))
+        self.car_mask_crop = self.mask_crop_batch(input['car_mask_crop'].to(self.device))
         self.car_inst_cors = self.mask_crop_batch(input['car_inst_cors'])
 
-        self.person_gt_crop = self.mask_crop_batch(input['person_gt_crop'].cuda())
-        self.person_gt_crop2048 = self.mask_crop_batch(input['person_gt_crop2048'].cuda())
-        self.person_masked_img_crop = self.mask_crop_batch(input['person_masked_img_crop'].cuda())
-        self.person_ints_mask_crop = self.mask_crop_batch(input['person_ints_mask_crop'].cuda())
-        self.person_mask_crop = self.mask_crop_batch(input['person_mask_crop'].cuda())
+        self.person_gt_crop = self.mask_crop_batch(input['person_gt_crop'].to(self.device))
+        self.person_gt_crop2048 = self.mask_crop_batch(input['person_gt_crop2048'].to(self.device))
+        self.person_masked_img_crop = self.mask_crop_batch(input['person_masked_img_crop'].to(self.device))
+        self.person_ints_mask_crop = self.mask_crop_batch(input['person_ints_mask_crop'].to(self.device))
+        self.person_mask_crop = self.mask_crop_batch(input['person_mask_crop'].to(self.device))
         self.person_inst_cors = self.mask_crop_batch(input['person_inst_cors'])
         
-        self.inst_map = input['inst_map'].cuda()
+        self.inst_map = input['inst_map'].to(self.device)
         self.edge_map = self.get_edges(self.inst_map)
         self.edge_map = self.edge_map * self.mask
         
         self.segmap_edge = torch.cat((self.segmap, self.edge_map), dim=1)
 
-        self.car_sty_images = self.mask_crop_batch(input['car_sty_images'].cuda())
-        self.car_sty_inst_images = self.mask_crop_batch(input['car_sty_inst_images'].cuda())
-        self.person_sty_images = self.mask_crop_batch(input['person_sty_images'].cuda())
-        self.person_sty_inst_images = self.mask_crop_batch(input['person_sty_inst_images'].cuda())
+        self.car_sty_images = self.mask_crop_batch(input['car_sty_images'].to(self.device))
+        self.car_sty_inst_images = self.mask_crop_batch(input['car_sty_inst_images'].to(self.device))
+        self.person_sty_images = self.mask_crop_batch(input['person_sty_images'].to(self.device))
+        self.person_sty_inst_images = self.mask_crop_batch(input['person_sty_inst_images'].to(self.device))
 
         self.name = input['name']
 
@@ -126,7 +127,7 @@ class Trainer(nn.Module):
         return batch
 
     def get_edges(self, t):
-        edge = torch.cuda.ByteTensor(t.size()).zero_()
+        edge = self.ByteTensor(t.size()).zero_()
         edge[:,:,:,1:] = edge[:,:,:,1:] | (t[:,:,:,1:] != t[:,:,:,:-1])
         edge[:,:,:,:-1] = edge[:,:,:,:-1] | (t[:,:,:,1:] != t[:,:,:,:-1])
         edge[:,:,1:,:] = edge[:,:,1:,:] | (t[:,:,1:,:] != t[:,:,:-1,:])
@@ -271,8 +272,7 @@ class Trainer(nn.Module):
         for name in self.model_names:
             net = getattr(self, name)
             save_file[name] = net.cpu().state_dict()
-            if torch.cuda.is_available():
-                net.cuda()
+            net.to(self.device)
         for name in self.opt_names:
             opt = getattr(self, name)
             save_file[name] = opt.state_dict()
@@ -286,8 +286,7 @@ class Trainer(nn.Module):
         for name in self.model_names:
             net = getattr(self, name)
             save_file[name] = net.cpu().state_dict()
-            if torch.cuda.is_available():
-                net.cuda()
+            net.to(self.device)
         for name in self.opt_names:
             opt = getattr(self, name)
             save_file[name] = opt.state_dict()
