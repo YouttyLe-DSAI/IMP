@@ -89,9 +89,9 @@ class SIE_Dataset(Dataset):
 
         # style image
         if self.split == 'train':
-            cls = int((index / 10000) % 3)
-            rn = random.randint(0,9999)
-            sty_rn = int(cls * 10000 + rn)
+            cls = int((index / 2000) % 2)
+            rn = random.randint(0, 1999)
+            sty_rn = int(cls * 2000 + rn)
             sty_d = self.data[sty_rn]
         
         elif self.split == 'test':
